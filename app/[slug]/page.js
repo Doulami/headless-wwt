@@ -1,19 +1,25 @@
-export async function generateStaticParams() {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_WP_API}/pages`);
-    const pages = await res.json();
-  
-    return pages.map((p) => ({ slug: p.slug }));
-  }
-  
-  export default async function DynamicPage({ params }) {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_WP_API}/slug/${params.slug}`, {
-      cache: 'force-cache',
+export const dynamic = 'error'; // Skip slow builds, render at request time
+
+export default async function Page({ params, searchParams }) {
+    const query = new URLSearchParams({
+      format: 'json',
+      ...(searchParams?.nocache === '1' && { nocache: '1' }),
+      ...(searchParams?.debug === '1' && { debug: '1' }),
     });
-    const data = await res.json();
+  
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_WP_API}/slug/${params.slug}?${query.toString()}`,
+      { cache: 'force-cache' }
+    );
+  
+    let data = { html: "<p>Page failed to load</p>" };
+    if (res.ok && res.headers.get("content-type")?.includes("application/json")) {
+      data = await res.json();
+    }
   
     return (
       <main className="min-h-screen w-full px-4 py-8">
-        <div dangerouslySetInnerHTML={{ __html: data?.html || "<p>Page not found</p>" }} />
+        <div dangerouslySetInnerHTML={{ __html: data.html }} />
       </main>
     );
   }
