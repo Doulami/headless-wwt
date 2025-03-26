@@ -1,3 +1,5 @@
+// app/[slug]/page.js
+
 export const dynamic = 'force-dynamic';
 
 export default async function Page({ params, searchParams }) {
@@ -7,10 +9,12 @@ export default async function Page({ params, searchParams }) {
     ...(searchParams?.debug === '1' && { debug: '1' }),
   });
 
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_WP_API}/slug/${params.slug}?${query.toString()}`,
-    { cache: 'no-store' }
-  );
+  const apiUrl = `${process.env.NEXT_PUBLIC_WP_API}/slug/${params.slug}?${query.toString()}`;
+
+  const res = await fetch(apiUrl, {
+    cache: 'no-store',
+    next: { tags: [`page-${params.slug}`] },
+  });
 
   let data = { html: "<p>Page failed to load</p>" };
   if (res.ok && res.headers.get("content-type")?.includes("application/json")) {
