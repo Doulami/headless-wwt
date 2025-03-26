@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 export default async function HomePage() {
     const res = await fetch(`${process.env.NEXT_PUBLIC_WP_API}/slug/home`, {
       cache: 'force-cache',
